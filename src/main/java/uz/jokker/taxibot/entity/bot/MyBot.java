@@ -87,6 +87,9 @@ public class MyBot extends TelegramLongPollingBot {
                             case State.YAKUN:
                                 execute(telegramService.elonSave(update));
                                 break;
+                            case State.DEADLINE_TIME:
+                                execute(telegramService.elonNiAmalQilishVaqtiniSaqlash(update));
+                                break;
                             case Constant.setting:
 
                                 break;

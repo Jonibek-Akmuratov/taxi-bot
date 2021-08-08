@@ -9,7 +9,6 @@ public interface Constant {
     String back = "Orqaga";
 
 
-
     String share_contact = "Raqamni yuborish";
 
     String register = "Registratsiyadan yaxshi o'tdingiz";
@@ -45,4 +44,16 @@ public interface Constant {
     String elon_berish_yonalish = "elon_berish_yonalish";
 
     String elon_taxi_klient = "Siz bu e'lonni haydovchi bb bermoqchimisz yoki yo'lovchi";
+
+    String buttonTanla = "Siz buttonlarni birini tanlashingiz kk edi? Iltimos Qaytatdan urinib ko'ring";
+
+    String buttonTanlaViloyat = "Siz quyidagi viloyatlardan birini tanlashingiz kk edi.Iltimos qaytatdan urinib ko'ring";
+
+    String min10 = "10 minut";
+    String min30 = "30 minut";
+    String min60 = "1 soat";
+    String min120 = "2 soat";
+    String min360 = "3 soat";
+    String min5x60="5 soat";
+    String VaqtButtonlarniTanlamasa = "Vaqtni Buttonlardan tanlashingiz kk edi. Iltimos qayta urinib ko'ring";
 }

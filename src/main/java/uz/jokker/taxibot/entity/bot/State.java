@@ -13,4 +13,18 @@ public interface State {
     String elon_berish_yonalish = "elon_berish_yonalish";
     String DEFFINATION = "DEFFINATION";
     String YAKUN = "YAKUN";
+    String DEADLINE_TIME = "DEADLINE_TIME";
+
+//    Andijon
+//Buxaro
+//Farg'ona
+//Namangan
+//Navoiy
+//Qarshi
+//Qashqadaryo
+//Qoraqaloqiston R
+//Samarqand
+//Sirdaryo
+//Surxandaryo
+//Toshkent
 }
