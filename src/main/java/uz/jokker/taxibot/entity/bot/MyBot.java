@@ -61,6 +61,9 @@ public class MyBot extends TelegramLongPollingBot {
                             case State.REGISTER_STAFF_TYPE:
                                 execute(telegramService.registerStaff(update));
                                 break;
+                            case State.CAR_TYPE:
+                                execute(telegramService.carSaved(update));
+                                break;
                             case State.MENU:
                                 execute(telegramService.menu(update));
                                 break;
@@ -87,7 +90,7 @@ public class MyBot extends TelegramLongPollingBot {
                             case State.YAKUN:
                                 execute(telegramService.elonSave(update));
                                 break;
-                            case State.DEADLINE_TIME:
+                            case State.DEFFINATION_SAQLANDI:
                                 execute(telegramService.elonNiAmalQilishVaqtiniSaqlash(update));
                                 break;
                             case Constant.setting:
@@ -96,6 +99,7 @@ public class MyBot extends TelegramLongPollingBot {
                             case Constant.elonlarimniOchirish:
 
                                 break;
+
                         }
 
                     }

@@ -29,9 +29,9 @@ public interface Constant {
 
     String system = "     ======>  MENU  <======    ";
 
-    String system_client = "Tizimga yo'lovchi sifatida kirdingiz";
+    String system_client = "Tizimga yo'lovchi sifatida kirdingiz.\n   ===>  MENU  <===";
 
-    String system_taxi = "Tizimga haydovchi sifatida kirdingiz";
+    String system_taxi = "Tizimga haydovchi sifatida kirdingiz, va sizni moshinagiz  ";
 
     String setting = "Setting";
 
@@ -56,4 +56,9 @@ public interface Constant {
     String min360 = "3 soat";
     String min5x60="5 soat";
     String VaqtButtonlarniTanlamasa = "Vaqtni Buttonlardan tanlashingiz kk edi. Iltimos qayta urinib ko'ring";
+    String tugadiElonBerish = "Elon berish yakuniga yetdi. Elon muvaffaqiyatli saqlandi";
+    String car_type_select = "Moshinagizni modelini tanlang";
+    String qiliptayinlandi = "dep sistemaga kiritildi.";
+    String menuga_qaytish = "Menuga qaytingiz";
+    String deffinitiongakeldik = "Salomlar Deffination ga kelding";
 }

@@ -21,9 +21,10 @@ public class Poster {
     private Integer id;
 
     @ManyToOne
+    @JoinColumn(unique = true)
     private User user;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private UserType posterType;
 
     @ManyToOne
@@ -41,4 +42,6 @@ public class Poster {
     private Timestamp activeTime;
 
     private boolean active=false;
+
+
 }

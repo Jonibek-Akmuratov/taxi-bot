@@ -14,6 +14,8 @@ public interface State {
     String DEFFINATION = "DEFFINATION";
     String YAKUN = "YAKUN";
     String DEADLINE_TIME = "DEADLINE_TIME";
+    String CAR_TYPE = "CARTYPE";
+    String DEFFINATION_SAQLANDI = "DEFFINATION_SAQLANDI";
 
 //    Andijon
 //Buxaro

@@ -9,14 +9,17 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import uz.jokker.taxibot.entity.Car;
 import uz.jokker.taxibot.entity.Poster;
 import uz.jokker.taxibot.entity.Region;
 import uz.jokker.taxibot.entity.User;
 import uz.jokker.taxibot.entity.enums.UserType;
+import uz.jokker.taxibot.repository.CarRepository;
 import uz.jokker.taxibot.repository.PosterRepository;
 import uz.jokker.taxibot.repository.RegionRepository;
 import uz.jokker.taxibot.repository.UserRepository;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,11 +31,14 @@ public class TelegramService {
     private final UserRepository userRepository;
     private final RegionRepository regionRepository;
     private final PosterRepository posterRepository;
+    private final CarRepository carRepository;
 
-    public TelegramService(UserRepository userRepository, RegionRepository regionRepository, PosterRepository posterRepository) {
+
+    public TelegramService(UserRepository userRepository, RegionRepository regionRepository, PosterRepository posterRepository, CarRepository carRepository) {
         this.userRepository = userRepository;
         this.regionRepository = regionRepository;
         this.posterRepository = posterRepository;
+        this.carRepository = carRepository;
     }
 
 
@@ -165,20 +171,26 @@ public class TelegramService {
         Optional<User> optionalUser = userRepository.findByChatId(update.getMessage().getChatId());
         User user = optionalUser.orElseGet(User::new);
 
-        if (update.getMessage().getText().equals(Constant.client)) {
-            user.setUserType(UserType.CLIENT);
-        }
+
         if (update.getMessage().getText().equals(Constant.taxi)) {
             user.setUserType(UserType.TAXI);
+            user.setState(State.CAR_TYPE);
+            user.setChatId(update.getMessage().getChatId());
+            userRepository.save(user);
+            return carTypeniTanlash(update, Constant.car_type_select);
         }
-        user.setState(State.MENU);
-        user.setChatId(update.getMessage().getChatId());
-        userRepository.save(user);
+        if (update.getMessage().getText().equals(Constant.client)) {
+            user.setUserType(UserType.CLIENT);
 
-        sendMessage.setText(Constant.system);
+            user.setState(State.MENU);
+            user.setChatId(update.getMessage().getChatId());
+            userRepository.save(user);
 
-        return menu(update);
-
+            return menu(update, Constant.system_client);
+        } else {
+            sendMessage.setText(Constant.buttonTanla);
+            return sendMessage;
+        }
     }
 
     public SendMessage menu(Update update) {
@@ -293,7 +305,9 @@ public class TelegramService {
         Optional<User> optionalUser = userRepository.findByChatId(update.getMessage().getChatId());
         User user = optionalUser.get();
 
-        Poster poster = posterRepository.findByUserId(user.getId()).get();
+        Poster poster = posterRepository.findByUserId(user.getId()).orElseGet(Poster::new);
+
+
         poster.setUser(user);
 
 
@@ -339,7 +353,7 @@ public class TelegramService {
 
         Region region = regionRepository.findByName(qayerdan).get();
 
-        Poster poster = new Poster();
+        Poster poster = posterRepository.findByUserId(user.getId()).get();
         poster.setUser(user);
         poster.setQayerdan(region);
         posterRepository.save(poster);
@@ -520,15 +534,15 @@ public class TelegramService {
         posterEdited.setQayerga(regionSave);
         posterRepository.save(posterEdited);
 
-        sendMessage.setText("Salomlar Deffination ga kelding");
+        sendMessage.setText(Constant.deffinitiongakeldik);
 
         ReplyKeyboardMarkup replyKeyboardMarkup = menuButton();
 
         user.setState(State.YAKUN);
-        Poster poster = posterRepository.findByUserId(user.getId()).orElseGet(Poster::new);
-        Region region = regionRepository.findByName(text).get();
-        poster.setQayerdan(region);
-        posterRepository.save(poster);
+//        Poster poster = posterRepository.findByUserId(user.getId()).orElseGet(Poster::new);
+//        Region region = regionRepository.findByName(text).get();
+//        poster.setQayerdan(region);
+//        posterRepository.save(poster);
         userRepository.save(user);
         sendMessage.setReplyMarkup(replyKeyboardMarkup);
 
@@ -540,20 +554,22 @@ public class TelegramService {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(String.valueOf(update.getMessage().getChatId()));
         sendMessage.setParseMode(ParseMode.MARKDOWN);
-        String text = update.getMessage().getText();
+        String deffination = update.getMessage().getText();
         User user = userRepository.findByChatId(update.getMessage().getChatId()).get();
-        if (text.equals(Constant.menu)) {
+        if (deffination.equals(Constant.menu)) {
             user.setState(State.MENU);
-            return menu(update);
+            return menu(update, Constant.menuga_qaytish);
         }
 
         Poster poster = posterRepository.findByUserId(user.getId()).get();
-        poster.setDefination(text);
+        poster.setDefination(deffination);
         posterRepository.save(poster);
 
+
         sendMessage.setText("E'lon saqlandi. Bu e'loningizni amal qilish muddatini kiring ");
-        user.setState(State.DEADLINE_TIME);
+        user.setState(State.DEFFINATION_SAQLANDI);
         ReplyKeyboardMarkup replyKeyboardMarkup = vaqtDeadlineTime();
+        userRepository.save(user);
         sendMessage.setReplyMarkup(replyKeyboardMarkup);
         return sendMessage;
     }
@@ -665,17 +681,85 @@ public class TelegramService {
         sendMessage.setParseMode(ParseMode.MARKDOWN);
         String text = update.getMessage().getText();
         User user = userRepository.findByChatId(update.getMessage().getChatId()).get();
-        boolean tek = true;
 
-        if (text == Constant.min5x60 || text == Constant.min360 || text == Constant.min10 ||
-                text == Constant.min120 || text == Constant.min30 || text == Constant.min60) {
+
+        if (text.equals(Constant.min5x60) || text.equals(Constant.min360) || text.equals(Constant.min10) ||
+                text.equals(Constant.min120) || text.equals(Constant.min30) || text.equals(Constant.min60)) {
             Poster poster = posterRepository.findByUserId(user.getId()).get();
-//            if (text == Constant.min10) {poster.setActiveTime((System.currentTimeMillis()+1000*60*10));   }
-
-
+            if (text.equals(Constant.min10)) {
+                poster.setActiveTime(new Timestamp(System.currentTimeMillis() + 1000 * 60 * 10l));
+            } else if (text.equals(Constant.min30)) {
+                poster.setActiveTime(new Timestamp(System.currentTimeMillis() + 1000 * 60 * 30l));
+            } else if (text.equals(Constant.min60)) {
+                poster.setActiveTime(new Timestamp(System.currentTimeMillis() + 1000 * 60 * 60l));
+            } else if (text.equals(Constant.min120)) {
+                poster.setActiveTime(new Timestamp(System.currentTimeMillis() + 1000 * 60 * 120l));
+            } else if (text.equals(Constant.min360)) {
+                poster.setActiveTime(new Timestamp(System.currentTimeMillis() + 1000 * 60 * 360l));
+            } else if (text.equals(Constant.min5x60)) {
+                poster.setActiveTime(new Timestamp(System.currentTimeMillis() + 1000 * 60 * 60 * 5l));
+            }
+            poster.setActive(true);
+            posterRepository.save(poster);
         } else {
             user.setState(State.MENU);
             return menu(update, Constant.VaqtButtonlarniTanlamasa);
+        }
+
+        return menu(update, Constant.tugadiElonBerish);
+    }
+
+    public SendMessage carTypeniTanlash(Update update, String sendmessag) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(String.valueOf(update.getMessage().getChatId()));
+        sendMessage.setParseMode(ParseMode.MARKDOWN);
+
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        replyKeyboardMarkup.setResizeKeyboard(true);
+        replyKeyboardMarkup.setSelective(true);
+        List<KeyboardRow> keyboardRows = new ArrayList<>();
+
+        List<Car> all = carRepository.findAll();
+
+        for (int i = 0; i < all.size() - 1; i += 2) {
+            KeyboardRow keyboardRow = new KeyboardRow();
+            KeyboardButton keyboardButton1 = new KeyboardButton();
+            KeyboardButton keyboardButton2 = new KeyboardButton();
+            keyboardButton1.setText(all.get(i).getName());
+            keyboardButton2.setText(all.get(i + 1).getName());
+            keyboardRow.add(keyboardButton1);
+            keyboardRow.add(keyboardButton2);
+            keyboardRows.add(keyboardRow);
+        }
+        sendMessage.setText(sendmessag);
+        replyKeyboardMarkup.setKeyboard(keyboardRows);
+        sendMessage.setReplyMarkup(replyKeyboardMarkup);
+        return sendMessage;
+    }
+
+    public SendMessage carSaved(Update update) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(String.valueOf(update.getMessage().getChatId()));
+        sendMessage.setParseMode(ParseMode.MARKDOWN);
+
+        String carType = update.getMessage().getText();
+        List<Car> all = carRepository.findAll();
+        boolean tek = true;
+        for (Car car : all) {
+            if (car.getName().equals(carType)) {
+                tek = false;
+            }
+        }
+        if (tek) {
+            sendMessage.setText("Moshina turini tanlashingiz kk edi. Iltimos qaytatdan urinib ko'ring!!!");
+            return sendMessage;
+        } else {
+            User user = userRepository.findByChatId(update.getMessage().getChatId()).get();
+            user.setState(State.MENU);
+            Car car = carRepository.findByName(carType).get();
+            user.setCarType(car);
+            userRepository.save(user);
+            return menu(update, (Constant.system_taxi + " " + user.getCarType().getName() + " " + Constant.qiliptayinlandi + " \n" + Constant.system));
         }
     }
 }
